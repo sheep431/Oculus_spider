@@ -7,59 +7,46 @@ from urllib.request import urlretrieve
 from docx import Document
 from docx.shared import Inches
 from selenium.webdriver import ActionChains
+import pandas as pd
 # import pyautogui
 
-def get_all_details(url:str,out_path:str,mode:str):
-    #先用selenium点开视频和介绍
-    save_path = out_path
-
-    options = webdriver.ChromeOptions()
-    prefs = {'profile.default_content_settings.popups': 0, 'download.default_directory': save_path, "profile"
-                                                                                                    ".default_content_setting_values.automatic_downloads": 1}
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--disable-notifications')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--verbose')
-    options.add_argument('--disable-gpu')
-    options.add_experimental_option('prefs', prefs)
-
-    driver = webdriver.Chrome()
-
-    driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-    params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': save_path}}
-    command_result = driver.execute("send_command", params)
-    driver.implicitly_wait(30)
-
-    driver.get(url)
-    driver.maximize_window()
-
-    if mode=="hdris":
-        # video_ele = driver.find_element_by_xpath("//div[@data-testid='play-video']")
-        # video_ele.click()
-        # sleep(2)
-        #
-        # def get_flag():
-        #     flag = True
-        #     try:
-        #         driver.find_element_by_class_name("store-item-detail-page-description__more")
-        #         return flag
-        #     except:
-        #         flag = False
-        #         return flag
-        #
-        # if get_flag():
-        #     more_ele = driver.find_element_by_class_name("store-item-detail-page-description__more")
-        #     more_ele.click()
-
-
+def get_all_details(out_path:str,mode:str):
 
         # 获得网页内容
-        html = driver.page_source
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(open("source_html/poly_heaven_HDRIS.html",encoding='utf8'),features="lxml")
+        # print(soup)
         # 获得所有a link
-        a_link_list = soup.find(name="a",attrs={"class":"GridItem_gridItem__0cuEz"})
-        print(len(a_link_list))
-
+        a_link_list = soup.find_all("a", attrs={"class": "GridItem_gridItem__0cuEz"})
+        list_title = []
+        list_csdn_title = []
+        list_desc = []
+        list_page_link = []
+        list_download_link = []
+        list_img_link = []
+        for ele in a_link_list:
+                cur_resource_title = str(ele["href"]).split("/")[2]
+                cur_csdn_title = "%s_游戏开发_VR开发_天空盒子_天空背景_无水印_unitySkybox_高清图片资源_16K_EXR"%cur_resource_title
+                cur_desc = "可用于UnityVR开发，3D游戏开发，高清天空盒子Skybox素材，游戏环境背景素材，无水印。使用方法：1-导入Unity后将图片的Shape转换成cube形式，2-创建空Material，并转换成Cube/skybox形式，3-将图片拖入新建的SkyboxMaterial，4-用刚创建的Material代替项目中原本的系统默认Skybox"
+                cur_detail_page_link = "https://polyhaven.com"+ele["href"]
+                cur_download_link = "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/16k%2B/"+cur_resource_title+"_16k.exr"
+                if len(ele.find_all("img")) > 1:
+                        cur_img_link = ele.find_all("img")[1]["src"]
+                else:
+                        cur_img_link = "No img link"
+                list_title.append(cur_resource_title)
+                list_csdn_title.append(cur_csdn_title)
+                list_desc.append(cur_desc)
+                list_page_link.append(cur_detail_page_link)
+                list_download_link.append(cur_download_link)
+                list_img_link.append(cur_img_link)
+        df_result = pd.DataFrame()
+        df_result["title"] = list_title
+        df_result["csdn_title"] = list_csdn_title
+        df_result["desc"] = list_desc
+        df_result["page_link"] = list_page_link
+        df_result["download_link"] = list_download_link
+        df_result["img_link"] = list_img_link
+        print(df_result)
         # # 获得MP4视频
         # mp4_source = soup.find(name="video",attrs={"class":"video-player__player"})
         # if mp4_source:
@@ -163,5 +150,5 @@ def get_all_details(url:str,out_path:str,mode:str):
         #
         # document.save(os.path.join(save_path,"%s.docx"%os.path.split(save_path)[-1]))
 
-        driver.close()
+        # driver.close()
 # get_all_detail_page("http://oculus.com//experiences/quest/2299465166734471?ranking_trace=106637288010653_2299465166734471_SKYLINEWEBQUESTSTORE_1888816384764129%3D%3D2x5u9EGNTYgMQt5Wi",r"D:\Document\生产\VR\auto_video\\")
