@@ -8,6 +8,7 @@ from docx import Document
 from docx.shared import Inches
 from selenium.webdriver import ActionChains
 import pandas as pd
+from Code.bulk_download import bulk_download
 # import pyautogui
 
 def get_all_details(out_path:str,mode:str):
@@ -23,7 +24,7 @@ def get_all_details(out_path:str,mode:str):
         list_page_link = []
         list_download_link = []
         list_img_link = []
-        for ele in a_link_list:
+        for ele in a_link_list[:1]:
                 cur_resource_title = str(ele["href"]).split("/")[2]
                 cur_csdn_title = "%s_游戏开发_VR开发_天空盒子_天空背景_无水印_unitySkybox_高清图片资源_16K_EXR"%cur_resource_title
                 cur_desc = "可用于UnityVR开发，3D游戏开发，高清天空盒子Skybox素材，游戏环境背景素材，无水印。使用方法：1-导入Unity后将图片的Shape转换成cube形式，2-创建空Material，并转换成Cube/skybox形式，3-将图片拖入新建的SkyboxMaterial，4-用刚创建的Material代替项目中原本的系统默认Skybox"
@@ -46,7 +47,8 @@ def get_all_details(out_path:str,mode:str):
         df_result["page_link"] = list_page_link
         df_result["download_link"] = list_download_link
         df_result["img_link"] = list_img_link
-        print(df_result)
+
+        bulk_download(df_result["download_link"].to_list(),"exr",r"E:\toCSDN\polyHeaven\hdris")
         # # 获得MP4视频
         # mp4_source = soup.find(name="video",attrs={"class":"video-player__player"})
         # if mp4_source:
